@@ -309,6 +309,7 @@ public:
   double ctime[17], previous_time;
   enum ComputeTime{TIME_CHAIN=0, TIME_SHAKE, TIME_CHI, TIME_RAMA, TIME_VEXCLUDED, TIME_DSSP, TIME_PAP, 
 		   TIME_WATER, TIME_BURIAL, TIME_HELIX, TIME_AMHGO, TIME_FRAGMEM, TIME_VFRAGMEM, TIME_MEMB, TIME_SSB, TIME_DH, TIME_N};
+
   
  private:
   void compute_backbone();
@@ -342,7 +343,9 @@ public:
   void compute_DebyeHuckel_Interaction(int i, int j);
 
   //----- AGREGADO FRANCO ------
-  void cambio_cargas(double *array, int arraysize);
+  int paso;
+  int freqMC;
+  void cambio_cargas(double *array, int arraysize, int paso);
   double electro_i_j(int i, int j, double *array);
   //---- AGREGADO FRANCO ------
 

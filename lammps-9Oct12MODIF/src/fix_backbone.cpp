@@ -64,6 +64,7 @@ char one_letter_code[] = {'A', 'R', 'N', 'D', 'C', 'Q', 'E', 'G', 'H', 'I', 'L',
 int bb_four_letter_map[] = {1, 3, 2, 2, 4, 2, 2, 1, 3, 4, 4, 3, 4, 4, 1, 1, 1, 4, 4, 4};
 bool firsttimestep = true;
 
+
 void itoa(int a, char *buf, int s)
 {
   int b = abs(a);
@@ -91,6 +92,22 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	
   efile = fopen("energy.log", "w");
   fmenergiesfile = fopen("fmenergies.log", "w");
+
+
+//----------AGREGADO FRANCO-------------------
+	FILE *mcout;
+	mcout = fopen("MC.result", "w");
+	fprintf(mcout,"\n");
+    fclose(mcout);
+
+    mcout = fopen("MC.result", "a");
+	fprintf(mcout,"Residuo    Carga    Paso Del Cambio\n");
+    fclose(mcout);
+
+
+//--------------------------------------------
+
+
 
   char buff[5];
   char forcefile[20]="";
@@ -943,8 +960,20 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     ifstream input_charge("charge_on_residues.dat");
     if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
     input_charge >> total_residues;
+
+//------------AGREGADO FRANCO-----------------------
+	ifstream montecarlo("MC.data");
+    if (!montecarlo) error->all(FLERR,"File MC.data doesn't exist");
+    montecarlo >> freqMC;
+
+    fprintf(screen, "Frecuencia de pregunta de Monte Carlo = %d \n", freqMC ); 
+	paso = 0;
+
+//-------------------AGREGADO FRANCO----------------------------
+	FILE *mcout;
+	mcout = fopen("MC.result", "a");
     
-    //fprintf(screen, "check charge data \n");
+//---------------------------------------------
     fprintf(screen, "Number of Charge input = %5d \n", total_residues);
     for(int ires = 0; ires<total_residues; ires++)
       {
@@ -954,23 +983,24 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	total_charge = total_charge + charge_value;
 	//fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", residue_number, charge_value);  // OJO DOS LINEAS DESCOMENTADAS
 	fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", res_min_one, charge_on_residue[res_min_one]);
+//---------------------------AGREGADO FRANCO-----------------------------------
+	fprintf(mcout, "%d", res_min_one);
+	fprintf(mcout, "     ");				
+	fprintf(mcout, "%8.6f", charge_on_residue[res_min_one]);
+	fprintf(mcout, "     ");				
+	fprintf(mcout, "%d\n", paso);
+//----------------------------------------------------------------------------------
+
+
+
       }
     input_charge.close();
     fprintf(screen, "Total Charge on the System = %8.4f\n", total_charge ); 
+//---------- AGREGADO FRANCO-------------------
+    fclose(mcout);
+//------------------------------
   }
-//----------- AGREGADO FRANCO INICIO ----------------------
-/*
-    for(int ires = 0; ires<total_residues; ires++)
-    {
-      int res_min_one = residue_number -1;
-    	charge_on_residue[res_min_one] = charge_value;
-    	total_charge = total_charge + charge_value;
-      fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", residue_number, charge_value);
-    	fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", res_min_one, charge_on_residue[res_min_one]);
 
-
-    }
-//----------- AGREGADO FRANCO FIN --------------------- */
 
   if (output_per_residue_contacts_flag) {
     output_per_residue_contacts_file = fopen(output_per_residue_contacts_file_name, "w");
@@ -1201,6 +1231,11 @@ void FixBackbone::allocate()
 
   if (huckel_flag) {
     charge_on_residue = new double[n];
+	// AGREGADO FRANCO
+	int freqMC;
+	int paso;
+
+//------------
   }
 
   if (water_flag) {
@@ -5661,7 +5696,7 @@ void FixBackbone::compute_solvent_barrier(int i, int j)
   f[jatom][2] += -force2*dx[2];
 }
 //----- AGREGADO FRANCO ------
-void FixBackbone::cambio_cargas(double *array, int arraysize)
+void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 {
 /*
 	PARA LEER DEL ARCHIVO LOS DATOS
@@ -5677,7 +5712,7 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
 	fprintf(screen, "La cantidad de residuos cargados es %5d", todos_residuos);
 */
 	double boltz = force->boltz;
-	fprintf(screen, "Constante de Boltz k_boltz = %8.6f \n",boltz);
+	//fprintf(screen, "Constante de Boltz k_boltz = %8.6f \n",boltz);
 
 // --------- TEMPERATURA
     char **arg = new char*[3];
@@ -5688,7 +5723,7 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
 	temperature->init();
     double calor = temperature->compute_scalar();
 
-	fprintf(screen, "Temperatura de MC = %8.6f \n",calor);
+	//fprintf(screen, "Temperatura de MC = %8.6f \n",calor); //la variable Calor es la Temp que uso para MC
 //----------------------------
     double charge_i = 0.0;
     int numTotalCargadas;  // necesito el numero total de cargadas y lo obtengo del archivo
@@ -5698,7 +5733,6 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
 
     int cargadas[numTotalCargadas];
     int n = 0;
-    int Temperatura = 300; // necesito la temperatura de la simulacion
     
     for(int i=0;i<arraysize;i++){
       charge_i = array[i];
@@ -5711,6 +5745,8 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
     }
 
 //-------------------------------------
+
+/*
 	double totalElecSinCambio = 0.0;
 	for(int i=0;i<numTotalCargadas;i++){
 		for(int j=0;j<numTotalCargadas;j++){
@@ -5721,33 +5757,13 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
 				int j=pos_j; 
 				double electro = electro_i_j(i, j ,array); // array sin cambiar
 				totalElecSinCambio += electro;
-				fprintf(screen, "Energia Electro entre %d y %d %8.6f \n", i, j, electro);
+				//fprintf(screen, "Energia Electro entre %d y %d %8.6f \n", i, j, electro);
 			}
 		}
 
     }
     fprintf(screen, "Energia Total Electro Sin cambio %8.6f \n", totalElecSinCambio);
-/*
-	int pos_i=cargadas[0];
-	int pos_j=cargadas[2];
-
-	int i=pos_i;
-	int j=pos_j; 
-	double electro = electro_i_j(i, j ,array); // array sin cambiar
-
-	fprintf(screen, "Energia Electro entre %d y %d %8.6f \n", i, j, electro);
-
-	electro = electro_i_j(2, 6 ,array);
-
-	fprintf(screen, "Energia Electro entre %d y %d %8.6f \n", 2, 6, electro);
-
-	electro = electro_i_j(6, 29 ,array);
-
-	fprintf(screen, "Energia Electro entre %d y %d %8.6f \n", 6, 29, electro);
 */
-//---------------------------------------
-
-
 
 //--------------------CAMBIO Y DELTA------------------------------------
 
@@ -5767,15 +5783,19 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
     }
 	delta_electro=2*delta_electro;
 	fprintf(screen, "Delta electrostatico = %8.6f \n", delta_electro);
+
+	// El delta electro asi calculado es deltaE = viejoestado - nuevo; con lo cual
+	// un valor positivo refleja que en el estado nuevo la energia es menor
+	
 	// ---------------
 
     // Monte carlo 
 	if (delta_electro > 0) {
       double random_probability = (double)rand()/RAND_MAX;
-      fprintf(screen,"----------------------------\n");
-      fprintf(screen,"random probability %f\n", random_probability);
+      fprintf(screen,"--------------MC--------------\n");
+      fprintf(screen,"random number %f\n", random_probability);
       fprintf(screen,"temperature %8.6f\n", calor);
-	  fprintf(screen,"boltzmann %8.6f\n", boltz);
+	  fprintf(screen,"boltzmann factor %8.6f\n", boltz);
 	  fprintf(screen,"exponential factor %8.6f\n", exp(-delta_electro/(boltz*calor)));
       if (random_probability > exp(-delta_electro/(boltz*calor))) {
 	  fprintf(screen,"rejected!\n");
@@ -5784,9 +5804,35 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
 	  fprintf(screen,"accepted!\n");
 	  array[cargadas[cambio]]*=-1;
       fprintf(screen, "Cambiando carga en lugar %d \n", cargadas[cambio]);
+	  // COMO HUBO UN CAMBIO GUARDO EN EL ARCHIVO
+	  FILE *mcout;
+      mcout = fopen("MC.result", "a");
+
+      for(int i=0;i<numTotalCargadas;i++){
+			int pos_i=cargadas[i];
+			if (!charge_on_residue[pos_i] == 0)
+	        {
+		    	fprintf(mcout, "%d", pos_i);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%8.6f", charge_on_residue[pos_i]);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%d\n", paso);
+		    }
+	  }
+	fclose(mcout);
+
+
+
+
       }
-	  fprintf(screen,"---------------------------\n");
-    }
+	  fprintf(screen,"---------------MC------------\n");
+    }else {
+	  fprintf(screen,"--------------MC--------------\n");
+      fprintf(screen,"delta electro negativo\n");
+	  fprintf(screen,"rejected!\n");
+	  fprintf(screen,"---------------MC------------\n");
+
+	}
 
 
 
@@ -5797,7 +5843,7 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
     for(int i=0;i<numTotalCargadas;i++){
         fprintf(screen, "lugar = %5d, carga = %8.6f\n", cargadas[i], array[cargadas[i]]);
     }
-
+/*
 	double totalElecConCambio = 0.0;
 	for(int i=0;i<numTotalCargadas;i++){
 		for(int j=0;j<numTotalCargadas;j++){
@@ -5808,38 +5854,18 @@ void FixBackbone::cambio_cargas(double *array, int arraysize)
 				int j=pos_j; 
 				double electro_cambiado = electro_i_j(i, j ,array); // array cambiado
 				totalElecConCambio += electro_cambiado;
-				fprintf(screen, "Energia Electro cambiada entre %d y %d %8.6f \n", i, j, electro_cambiado);
+				//fprintf(screen, "Energia Electro cambiada entre %d y %d %8.6f \n", i, j, electro_cambiado);
 			}
 		}
 
 
     }
     fprintf(screen, "Energia Total Electro Con cambio %8.6f \n", totalElecConCambio);
-
-/*
-	pos_i=cargadas[0];
-	pos_j=cargadas[2];
-
-	i=pos_i;
-	j=pos_j; 
-	double electro_cambiado = electro_i_j(i, j ,array); // array ya cambiado
-
-	fprintf(screen, "Energia Electro entre %d y %d cambiado %8.6f \n", i, j, electro_cambiado);
-
-	electro_cambiado = electro_i_j(2, 6 ,array);
-
-	fprintf(screen, "Energia Electro entre %d y %d cambiado %8.6f \n", 2, 6, electro_cambiado);
-
-	electro_cambiado = electro_i_j(6, 29 ,array);
-
-	fprintf(screen, "Energia Electro entre %d y %d cambiado %8.6f \n", 6, 29, electro_cambiado);
 */
 
 }
 
 double FixBackbone::electro_i_j(int i, int j, double *array){ 
-
-// CALCULO DE LA DIFERENCIA DE ENERGIA ELECTROSTATICA ENTRE CAMBIOS
 
 
 //Calculo de la energia electrostatica entre i y j
@@ -5966,7 +5992,9 @@ void FixBackbone::compute_DebyeHuckel_Interaction(int i, int j)
   }
   
   double term_energy = epsilon*term_qq_by_r*exp(-k_screening*r/screening_length);
-  if(!term_energy==0)	{ fprintf(screen, "Entro a DH Inter \n");} // AGREGADO FRANCO
+  if(!term_energy==0)	{ //fprintf(screen, "Entro a DH Inter \n");
+
+  } // AGREGADO FRANCO
   energy[ET_DH] += term_energy;
 
   
@@ -7177,30 +7205,7 @@ void FixBackbone::compute_backbone()
     fprintf(dout, "\n\n");
 
 #else
-  //---- AGREGADO FRANCO ------
-
-//soso
-  if (huckel_flag) {
-	fprintf(screen, "Ejecuto Cambio Cargas\n"); // AGREGADO FRANCO
-    cambio_cargas(charge_on_residue, 51); // Ese 51 es el numero total de residuos	
-/*
-	for (i=0;i<nn;i++) {
-		i_resno = res_no[i]-1;
-		i_chno = chain_no[i]-1;
-			for (j=0;j<nn;j++) {
-			  j_resno = res_no[j]-1;
-			  j_chno = chain_no[j]-1;
-			  if (huckel_flag) {
-				compute_DebyeHuckel_Interaction(i, j); // OJO CADA VEZ QUE CORRO ESTO SUMO A LA ENERGIA
-			  }
-			}
-	 }
-    fprintf(screen, "Total DH_Elect_Energy: %f \n", energy[ET_DH]/2); // Divido por dos porque recorri todos los indices
-*/
-  }
-
-  //---- AGREGADO FRANCO FIN -----
-  
+    
   for (i=0;i<nn;i++) {
     i_resno = res_no[i]-1;
     i_chno = chain_no[i]-1;
@@ -7380,6 +7385,30 @@ void FixBackbone::compute_backbone()
   if (output_per_residue_contacts_flag && ntimestep % output_per_residue_contacts_frequency == 0) {
     output_per_residue_contacts();
   }
+//---- AGREGADO FRANCO ------
+
+//soso
+  if (huckel_flag) {
+
+//----------Control de cada cuanto se ejecuta el cambio de las cargas----------------
+	int residuosTotales=51;
+
+
+
+	if(paso%freqMC==0){
+		fprintf(screen, "Intento de Monte Carlo\n"); // AGREGADO FRANCO
+    	cambio_cargas(charge_on_residue, residuosTotales,paso); // Ese 51 es el numero total de residuos	
+		
+	}
+
+// EN ESTA PARTE GUARDO LA INFO EN ALGUN ARCHIVO DEL PASO Y EL ESTADO DE CARGAS DE LOS RESIDUOS
+	
+
+	paso++;
+
+  }
+
+  //---- AGREGADO FRANCO FIN -----
 
 #endif
 	
@@ -7405,8 +7434,7 @@ void FixBackbone::pre_force(int vflag)
     compute_amylometer();
   }
   else {
-	fprintf(screen, "Calculo el backbone\n"); // AGREGADO FRANCO
-
+	//fprintf(screen, "Calculo el backbone\n"); // AGREGADO FRANCO
     compute_backbone();
   }
 }

@@ -94,11 +94,11 @@ double ComputeTemp::compute_scalar()
         t += (v[i][0]*v[i][0] + v[i][1]*v[i][1] + v[i][2]*v[i][2]) *
           mass[type[i]];
   }
-  //fprintf(screen, "Calculo la temperatura t = %8.6f \n",t);
+  fprintf(screen, "Calculo la temperatura t = %8.6f \n",t);
   MPI_Allreduce(&t,&scalar,1,MPI_DOUBLE,MPI_SUM,world);
   if (dynamic) dof_compute();
   scalar *= tfactor;
-  //fprintf(screen, "Transformo con tfactor Temp = %8.6f \n",scalar);
+  fprintf(screen, "Transformo con tfactor Temp = %8.6f \n",scalar);
   return scalar;
 }
 
