@@ -960,8 +960,20 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     ifstream input_charge("charge_on_residues.dat");
     if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
     input_charge >> total_residues;
+
+//------------AGREGADO FRANCO-----------------------
+	ifstream montecarlo("MC.data");
+    if (!montecarlo) error->all(FLERR,"File MC.data doesn't exist");
+    montecarlo >> freqMC;
+
+    fprintf(screen, "Frecuencia de pregunta de Monte Carlo = %d \n", freqMC ); 
+	paso = 0;
+
+//-------------------AGREGADO FRANCO----------------------------
+	FILE *mcout;
+	mcout = fopen("MC.result", "a");
     
-    //fprintf(screen, "check charge data \n");
+//---------------------------------------------
     fprintf(screen, "Number of Charge input = %5d \n", total_residues);
     for(int ires = 0; ires<total_residues; ires++)
       {
@@ -971,18 +983,22 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	total_charge = total_charge + charge_value;
 	//fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", residue_number, charge_value);  // OJO DOS LINEAS DESCOMENTADAS
 	fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", res_min_one, charge_on_residue[res_min_one]);
+//---------------------------AGREGADO FRANCO-----------------------------------
+	fprintf(mcout, "%d", res_min_one);
+	fprintf(mcout, "     ");				
+	fprintf(mcout, "%8.6f", charge_on_residue[res_min_one]);
+	fprintf(mcout, "     ");				
+	fprintf(mcout, "%d\n", paso);
+//----------------------------------------------------------------------------------
+
+
+
       }
     input_charge.close();
     fprintf(screen, "Total Charge on the System = %8.4f\n", total_charge ); 
-	
-//----------AGREGADO FRANCO-------------------
-	ifstream montecarlo("MC.data");
-    if (!montecarlo) error->all(FLERR,"File MC.data doesn't exist");
-    montecarlo >> freqMC;
-
-    fprintf(screen, "Frecuencia de pregunta de Monte Carlo = %d \n", freqMC ); 
-	paso = 0;
-//-----------------------------------------------
+//---------- AGREGADO FRANCO-------------------
+    fclose(mcout);
+//------------------------------
   }
 
 
