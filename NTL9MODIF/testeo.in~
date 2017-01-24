@@ -63,4 +63,4 @@ dump_modify	1 sort id
 #minimize 1.0e-4 1.0e-6 100 1000
 
 reset_timestep	0
-run		1000
+run		5000
