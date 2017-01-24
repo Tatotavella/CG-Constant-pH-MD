@@ -345,6 +345,9 @@ public:
   //----- AGREGADO FRANCO ------
   int paso;
   int freqMC;
+  double pH;
+  double pKa1;
+  double pKa2;
   void cambio_cargas(double *array, int arraysize, int paso);
   double electro_i_j(int i, int j, double *array);
   //---- AGREGADO FRANCO ------

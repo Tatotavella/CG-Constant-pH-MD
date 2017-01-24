@@ -96,11 +96,11 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 
 //----------AGREGADO FRANCO-------------------
 	FILE *mcout;
-	mcout = fopen("MC.result", "w");
-	fprintf(mcout,"\n");
-    fclose(mcout);
+	//mcout = fopen("MC.result", "w");
+	//fprintf(mcout,"\n");
+    //fclose(mcout);
 
-    mcout = fopen("MC.result", "a");
+    mcout = fopen("MC.result", "w");
 	fprintf(mcout,"Residuo    Carga    Paso Del Cambio\n");
     fclose(mcout);
 
@@ -965,6 +965,10 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	ifstream montecarlo("MC.data");
     if (!montecarlo) error->all(FLERR,"File MC.data doesn't exist");
     montecarlo >> freqMC;
+	montecarlo >> pH;
+	montecarlo >> pKa1;
+	montecarlo >> pKa2;
+	fprintf(screen,"%8.6f",pKa2);
 
     fprintf(screen, "Frecuencia de pregunta de Monte Carlo = %d \n", freqMC ); 
 	paso = 0;
@@ -984,11 +988,13 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	//fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", residue_number, charge_value);  // OJO DOS LINEAS DESCOMENTADAS
 	fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", res_min_one, charge_on_residue[res_min_one]);
 //---------------------------AGREGADO FRANCO-----------------------------------
+/*
 	fprintf(mcout, "%d", res_min_one);
 	fprintf(mcout, "     ");				
 	fprintf(mcout, "%8.6f", charge_on_residue[res_min_one]);
 	fprintf(mcout, "     ");				
 	fprintf(mcout, "%d\n", paso);
+*/
 //----------------------------------------------------------------------------------
 
 
@@ -1232,6 +1238,9 @@ void FixBackbone::allocate()
   if (huckel_flag) {
     charge_on_residue = new double[n];
 	// AGREGADO FRANCO
+	double pH;
+	double pKa1;
+	double pKa2;
 	int freqMC;
 	int paso;
 
@@ -5731,9 +5740,13 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
     if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
     input_charge >> numTotalCargadas;
 
+
+
+
     int cargadas[numTotalCargadas];
     int n = 0;
-    
+
+/*
     for(int i=0;i<arraysize;i++){
       charge_i = array[i];
       if (!charge_i == 0)
@@ -5743,7 +5756,9 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
         n++;
       }
     }
-
+*/
+	cargadas[0]=22;
+	cargadas[1]=37;
 //-------------------------------------
 
 /*
@@ -5770,27 +5785,79 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 
     // Numero al azar entre las cargadas
     int cambio = rand() % numTotalCargadas;
-    //fprintf(screen, "cambio = %d, lugar = %d \n", cambio, cargadas[cambio]);
-    
 
-    // Delta de energia entre cambios -----
-	double delta_electro = 0.0;
+	//fprintf(screen,"CAMBIO %5d\n", cambio);
+    //fprintf(screen, "cambio = %d, lugar = %d \n", cambio, cargadas[cambio]);
+	int carga_vieja = array[cargadas[cambio]];
+
+	double energia_vieja = 0.0;
+
 	for(int i=0;i<numTotalCargadas;i++){
      if (i != cambio)
      {
-       delta_electro+=electro_i_j(cargadas[cambio], cargadas[i], array);
+       energia_vieja+=electro_i_j(cargadas[cambio], cargadas[i], array);
      }
     }
-	delta_electro=2*delta_electro;
+    fprintf(screen, "Energia anterior = %8.6f \n", energia_vieja);
+
+    // Delta de energia entre cambios -----
+	double energia_nueva = 0.0;
+
+// CAMBIO LAS CARGAS
+	if(array[cargadas[cambio]]==-1){
+		array[cargadas[cambio]]=0;
+	  }else if(array[cargadas[cambio]]==0){
+		array[cargadas[cambio]]=-1;
+	  }
+	int carga_nueva = array[cargadas[cambio]];	
+
+	for(int i=0;i<numTotalCargadas;i++){
+     if (i != cambio)
+     {
+       energia_nueva+=electro_i_j(cargadas[cambio], cargadas[i], array);
+     }
+    }
+    fprintf(screen, "Energia nueva = %8.6f \n", energia_nueva);
+// REVIERTO EL CAMBIO
+	if(array[cargadas[cambio]]==-1){
+		array[cargadas[cambio]]=0;
+	  }else if(array[cargadas[cambio]]==0){
+		array[cargadas[cambio]]=-1;
+	  }
+
+
+	double delta_electro=energia_nueva-energia_vieja;
+
 	fprintf(screen, "Delta electrostatico = %8.6f \n", delta_electro);
 
 	// El delta electro asi calculado es deltaE = viejoestado - nuevo; con lo cual
 	// un valor positivo refleja que en el estado nuevo la energia es menor
+	int direccion = carga_nueva - carga_vieja;
+	
+	fprintf(screen, "pH = %8.6f \n", pH);
+	fprintf(screen, "pKa1 = %8.6f \n", pKa1);
+	fprintf(screen, "pKa2 = %8.6f \n", pKa2);
+	fprintf(screen, "direccion = %5d \n", direccion);
+	
+    // ACA TENGO QUE USAR EL PKA DE LA DEL CAMBIO
+	double termpH = 0.0;
+	if(cambio==0){
+	  termpH = direccion*boltz*calor*log(10)*fabs(pH-pKa1);
+	}else if(cambio==1){
+	  termpH = direccion*boltz*calor*log(10)*fabs(pH-pKa2); 
+    }
+	fprintf(screen, "termpH = %8.6f \n", termpH);
+
+	delta_electro = delta_electro + termpH;
+
+	fprintf(screen, "Delta electrostatico = %8.6f \n", delta_electro);
+
+
 	
 	// ---------------
 
     // Monte carlo 
-	if (delta_electro > 0) {
+	if (delta_electro >= 0) {
       double random_probability = (double)rand()/RAND_MAX;
       fprintf(screen,"--------------MC--------------\n");
       fprintf(screen,"random number %f\n", random_probability);
@@ -5799,10 +5866,28 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 	  fprintf(screen,"exponential factor %8.6f\n", exp(-delta_electro/(boltz*calor)));
       if (random_probability > exp(-delta_electro/(boltz*calor))) {
 	  fprintf(screen,"rejected!\n");
+	  FILE *mcout;
+      mcout = fopen("MC.result", "a");
+
+      for(int i=0;i<numTotalCargadas;i++){
+			int pos_i=cargadas[i];
+		    	fprintf(mcout, "%d", pos_i);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%8.6f", array[pos_i]);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%d\n", paso);
+
+	  }
+	  fclose(mcout);
 	  }
       else {
 	  fprintf(screen,"accepted!\n");
-	  array[cargadas[cambio]]*=-1;
+	  if(array[cargadas[cambio]]==-1){
+		array[cargadas[cambio]]=0;
+	  }else if(array[cargadas[cambio]]==0){
+		array[cargadas[cambio]]=-1;
+	  }
+	   
       fprintf(screen, "Cambiando carga en lugar %d \n", cargadas[cambio]);
 	  // COMO HUBO UN CAMBIO GUARDO EN EL ARCHIVO
 	  FILE *mcout;
@@ -5810,30 +5895,51 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 
       for(int i=0;i<numTotalCargadas;i++){
 			int pos_i=cargadas[i];
-			if (!charge_on_residue[pos_i] == 0)
-	        {
 		    	fprintf(mcout, "%d", pos_i);
 				fprintf(mcout, "     ");				
-				fprintf(mcout, "%8.6f", charge_on_residue[pos_i]);
+				fprintf(mcout, "%8.6f", array[pos_i]);
 				fprintf(mcout, "     ");				
 				fprintf(mcout, "%d\n", paso);
-		    }
+
 	  }
-	fclose(mcout);
+	  fclose(mcout);
 
 
 
 
       }
 	  fprintf(screen,"---------------MC------------\n");
-    }else {
+    }else{
 	  fprintf(screen,"--------------MC--------------\n");
       fprintf(screen,"delta electro negativo\n");
-	  fprintf(screen,"rejected!\n");
+	  fprintf(screen,"accepted!\n");
 	  fprintf(screen,"---------------MC------------\n");
 
-	}
+	  if(array[cargadas[cambio]]==-1){
+		array[cargadas[cambio]]=0;
+	  }else if(array[cargadas[cambio]]==0){
+		array[cargadas[cambio]]=-1;
+	  }
 
+	  // COMO HUBO UN CAMBIO GUARDO EN EL ARCHIVO
+	  FILE *mcout;
+      mcout = fopen("MC.result", "a");
+
+      for(int i=0;i<numTotalCargadas;i++){
+			int pos_i=cargadas[i];
+		    	fprintf(mcout, "%d", pos_i);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%8.6f", array[pos_i]);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%d\n", paso);
+
+	  }
+	  fclose(mcout); 
+      fprintf(screen, "Cambiando carga en lugar %d \n", cargadas[cambio]);
+
+	  
+	}
+		
 
 
 //-------------------------------------------------------------
@@ -5843,25 +5949,6 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
     for(int i=0;i<numTotalCargadas;i++){
         fprintf(screen, "lugar = %5d, carga = %8.6f\n", cargadas[i], array[cargadas[i]]);
     }
-/*
-	double totalElecConCambio = 0.0;
-	for(int i=0;i<numTotalCargadas;i++){
-		for(int j=0;j<numTotalCargadas;j++){
-			if(i<j){
-				int pos_i=cargadas[i];
-				int pos_j=cargadas[j];
-				int i=pos_i;
-				int j=pos_j; 
-				double electro_cambiado = electro_i_j(i, j ,array); // array cambiado
-				totalElecConCambio += electro_cambiado;
-				//fprintf(screen, "Energia Electro cambiada entre %d y %d %8.6f \n", i, j, electro_cambiado);
-			}
-		}
-
-
-    }
-    fprintf(screen, "Energia Total Electro Con cambio %8.6f \n", totalElecConCambio);
-*/
 
 }
 
@@ -7399,6 +7486,25 @@ void FixBackbone::compute_backbone()
 		fprintf(screen, "Intento de Monte Carlo\n"); // AGREGADO FRANCO
     	cambio_cargas(charge_on_residue, residuosTotales,paso); // Ese 51 es el numero total de residuos	
 		
+	}else{
+			  //GUARDO EN EL ARCHIVO
+	  FILE *mcout;
+      mcout = fopen("MC.result", "a");
+      int pos_i=22;
+	  fprintf(mcout, "%d", pos_i);
+      fprintf(mcout, "     ");				
+	  fprintf(mcout, "%8.6f", charge_on_residue[pos_i]);
+      fprintf(mcout, "     ");				
+	  fprintf(mcout, "%d\n", paso);
+		    
+	  pos_i=37;
+		    	fprintf(mcout, "%d", pos_i);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%8.6f", charge_on_residue[pos_i]);
+				fprintf(mcout, "     ");				
+				fprintf(mcout, "%d\n", paso);
+		    
+	fclose(mcout);
 	}
 
 // EN ESTA PARTE GUARDO LA INFO EN ALGUN ARCHIVO DEL PASO Y EL ESTADO DE CARGAS DE LOS RESIDUOS
