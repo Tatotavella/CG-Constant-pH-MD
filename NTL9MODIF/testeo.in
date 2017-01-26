@@ -67,7 +67,7 @@ fix         wham all print 100 "${step}        ${qw} ${rg} ${qo} ${tc} ${E_P}"
 
 
 thermo		1
-dump		1 all atom 10 dump.lammpstrj12
+dump		1 all atom 10 dump.lammpstrj
 
 dump_modify	1 sort id
 
@@ -77,4 +77,4 @@ dump_modify	1 sort id
 #minimize 1.0e-4 1.0e-6 100 1000
 
 reset_timestep	0
-run		10000
+run		100

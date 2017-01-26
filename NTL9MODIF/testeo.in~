@@ -44,9 +44,23 @@ fix		  1 all nvt temp 300.0 300.0 100.0
 fix		  2 alpha_carbons backbone beta_atoms oxygens fix_backbone_coeff.data testeo.seq
 #fix		  3 all fixprueba 10
 
+variable      biasinge equal f_qbias
+# output wham.dat, a file with collective variables that can be used to compute pmfs
+compute     qw alpha_carbons qwolynes rnative.dat 2 0.15
+variable    qw equal c_qw
+compute     rg alpha_carbons gyration
+variable    rg equal c_rg
+compute     qo alpha_carbons qonuchic cutoff 12.0 nativecoords.dat 1.2
+variable    qo equal c_qo
+compute     tc beta_atoms totalcontacts 6.5 2
+variable    tc equal c_tc
+variable    step equal step
+variable    E_P equal pe
+
+fix         wham all print 100 "${step}        ${qw} ${rg} ${qo} ${tc} ${E_P}"
 
 
-variable    stepq equal step
+#variable    stepq equal step
 #variable E_bond  equal emol
 #fix energy all print 10 "${stepq} ${E_bond}"
 
@@ -63,4 +77,4 @@ dump_modify	1 sort id
 #minimize 1.0e-4 1.0e-6 100 1000
 
 reset_timestep	0
-run		10000
+run		1000

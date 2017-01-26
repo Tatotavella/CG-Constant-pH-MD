@@ -101,9 +101,14 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     //fclose(mcout);
 
     mcout = fopen("MC.result", "w");
-	fprintf(mcout,"Residuo    Carga    Paso Del Cambio\n");
+	fprintf(mcout,"Step\t");
     fclose(mcout);
 
+	FILE *deprotout;
+
+    deprotout = fopen("MC.deprot", "w");
+	fprintf(deprotout,"Step\t");
+    fclose(deprotout);
 
 //--------------------------------------------
 
@@ -961,23 +966,7 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
     input_charge >> total_residues;
 
-//------------AGREGADO FRANCO-----------------------
-	ifstream montecarlo("MC.data");
-    if (!montecarlo) error->all(FLERR,"File MC.data doesn't exist");
-    montecarlo >> freqMC;
-	montecarlo >> pH;
-	montecarlo >> pKa1;
-	montecarlo >> pKa2;
-	fprintf(screen,"%8.6f",pKa2);
 
-    fprintf(screen, "Frecuencia de pregunta de Monte Carlo = %d \n", freqMC ); 
-	paso = 0;
-
-//-------------------AGREGADO FRANCO----------------------------
-	FILE *mcout;
-	mcout = fopen("MC.result", "a");
-    
-//---------------------------------------------
     fprintf(screen, "Number of Charge input = %5d \n", total_residues);
     for(int ires = 0; ires<total_residues; ires++)
       {
@@ -987,24 +976,87 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	total_charge = total_charge + charge_value;
 	//fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", residue_number, charge_value);  // OJO DOS LINEAS DESCOMENTADAS
 	fprintf(screen, "residue=%5d, charge on residue =%8.6f\n", res_min_one, charge_on_residue[res_min_one]);
-//---------------------------AGREGADO FRANCO-----------------------------------
-/*
-	fprintf(mcout, "%d", res_min_one);
-	fprintf(mcout, "     ");				
-	fprintf(mcout, "%8.6f", charge_on_residue[res_min_one]);
-	fprintf(mcout, "     ");				
-	fprintf(mcout, "%d\n", paso);
-*/
-//----------------------------------------------------------------------------------
-
-
-
       }
     input_charge.close();
     fprintf(screen, "Total Charge on the System = %8.4f\n", total_charge ); 
-//---------- AGREGADO FRANCO-------------------
-    fclose(mcout);
+
+//------------FRANCO-----------------------
+/*
+	ifstream montecarlo("MC.data");
+    if (!montecarlo) error->all(FLERR,"File MC.data doesn't exist");
+    montecarlo >> freqMC;
+	montecarlo >> pH;
+	montecarlo >> pKa1;
+	montecarlo >> pKa2;
+
+    fprintf(screen, "Frecuencia de pregunta de Monte Carlo = %d \n", freqMC ); 
+	paso = 0;
+//*/
+//-------------------AGREGADO FRANCO---------------------------
+
+
 //------------------------------
+//*/
+//-------------------FRANCO------------------------------------------------------
+/*
+	double pH;
+	//double pKa1;
+	//double pKa2;
+	int freqMC;
+	//int paso;
+	int total_res_charged;
+//*/
+	ifstream input_mc("MC.input");
+    if (!input_mc) error->all(FLERR,"File MC.input doesn't exist");
+    input_mc >> freqMC;
+	input_mc >> pH;
+	input_mc >> total_res_charged;
+
+	pKas = new double[total_res_charged];
+    charged_indexes = new int[total_res_charged];
+    letter = new char[total_res_charged];
+    times_uncharged = new int[total_res_charged];
+	for(i=0;i<total_res_charged;i++){
+		times_uncharged[i] = 0;
+	}
+
+	fprintf(screen, "------------MC-Init---------------\n");
+	for(i = 0;i<total_res_charged;i++){
+		input_mc >> charged_indexes[i] >> pKas[i] >> letter[i];
+	}
+		
+	for(i = 0;i<total_res_charged;i++){
+		fprintf(screen,"Residue: %5d, pKa: %8.6f, Letter: %c  \n",charged_indexes[i], pKas[i], letter[i]);
+	}
+	
+    fprintf(screen, "Monte Carlo charge change frequency = %d \n", freqMC ); 
+    fprintf(screen, "pH of the simulation = %8.6f \n", pH );
+	fprintf(screen, "-------------MC-Init-------------\n");
+
+
+	FILE *mcout;
+	mcout = fopen("MC.result", "a");
+
+	FILE *deprotout;
+    deprotout = fopen("MC.deprot", "a");
+
+    
+
+	for(i = 0;i<total_res_charged;i++){
+		fprintf(mcout,"%5d\t",charged_indexes[i]);
+		fprintf(deprotout,"%5d\t",charged_indexes[i]);
+	}
+    fprintf(mcout,"\n");
+	fprintf(deprotout,"\n");
+    fclose(mcout);
+	fclose(deprotout);
+
+
+//*/
+//--------------------------------------------------------------------------------
+
+
+
   }
 
 
@@ -1208,6 +1260,17 @@ FixBackbone::~FixBackbone()
 
   if (huckel_flag) {
     delete[] charge_on_residue;
+//--------------------FRANCO--------------------------------
+/*	
+	delete freqMC;
+	delete pH;
+	delete total_res_charged;
+	delete[] pKas;
+*/
+
+//----------------------------------------------------------
+
+
   }
 
   if (output_per_residue_contacts_flag) {
@@ -1237,14 +1300,17 @@ void FixBackbone::allocate()
 
   if (huckel_flag) {
     charge_on_residue = new double[n];
-	// AGREGADO FRANCO
+//-----------------FRANCO-----------------------------
 	double pH;
-	double pKa1;
-	double pKa2;
+	//double pKa1;
+	//double pKa2;
 	int freqMC;
-	int paso;
-
-//------------
+	//int paso;
+	int total_res_charged;
+	//pKas = new double[n];
+    //charged_indexes = new int[n];
+//*/
+//-----------------------------------------------------
   }
 
   if (water_flag) {
@@ -5705,14 +5771,15 @@ void FixBackbone::compute_solvent_barrier(int i, int j)
   f[jatom][2] += -force2*dx[2];
 }
 //----- AGREGADO FRANCO ------
-void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
+void FixBackbone::mc_charge_change(double *charge_on_residues, int total_res_charged, int *charged_indexes, double *pKas, char *letter)
 {
-/*
+/*	void FixBackbone::mc_charge_change(double *charge_on_residues, int total_res_charged,
+									   int *charged_indexes, double *pKas, char *letter)
 	PARA LEER DEL ARCHIVO LOS DATOS
     ifstream input_charge("charge_on_residues.dat");
     if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
     input_charge >> total_residues;
-
+	
 	FUNCIONA esto
 	int todos_residuos;
     ifstream input_charge("charge_on_residues.dat");
@@ -5720,10 +5787,12 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
     input_charge >> todos_residuos;
 	fprintf(screen, "La cantidad de residuos cargados es %5d", todos_residuos);
 */
-	double boltz = force->boltz;
+	
+	//double boltz = force->boltz;
 	//fprintf(screen, "Constante de Boltz k_boltz = %8.6f \n",boltz);
 
 // --------- TEMPERATURA
+/*
     char **arg = new char*[3];
     arg[0] = (char *) "velocity_temp";
     arg[1] = group->names[igroup]; // QUE SIGNIFICA ACA IGROUP VER CON MAS CUIDADO
@@ -5731,20 +5800,23 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 	ComputeTemp * temperature = new ComputeTemp(lmp,3,arg);
 	temperature->init();
     double calor = temperature->compute_scalar();
-
+//*/
+    fprintf(screen,"--------------MC--------------\n");
+	fprintf(screen, "Monte Carlo trial\n");
+	double mc_temp = temp_calc(igroup3);
 	//fprintf(screen, "Temperatura de MC = %8.6f \n",calor); //la variable Calor es la Temp que uso para MC
 //----------------------------
-    double charge_i = 0.0;
-    int numTotalCargadas;  // necesito el numero total de cargadas y lo obtengo del archivo
-    ifstream input_charge("charge_on_residues.dat");
-    if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
-    input_charge >> numTotalCargadas;
+    //double charge_i = 0.0;
+    //int numTotalCargadas;  // necesito el numero total de cargadas y lo obtengo del archivo
+    //ifstream input_charge("charge_on_residues.dat");
+    //if (!input_charge) error->all(FLERR,"File charge_on_residues.dat doesn't exist");
+    //input_charge >> numTotalCargadas;
 
 
 
 
-    int cargadas[numTotalCargadas];
-    int n = 0;
+    //int cargadas[numTotalCargadas];
+    //int n = 0;
 
 /*
     for(int i=0;i<arraysize;i++){
@@ -5757,8 +5829,8 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
       }
     }
 */
-	cargadas[0]=22;
-	cargadas[1]=37;
+	//cargadas[0]=22;
+	//cargadas[1]=37;
 //-------------------------------------
 
 /*
@@ -5783,15 +5855,30 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 //--------------------CAMBIO Y DELTA------------------------------------
 
 
-    // Numero al azar entre las cargadas
-    int cambio = rand() % numTotalCargadas;
-
+    // Random Number between total_res_charged
+    int rnd_idx = rand() % total_res_charged;
+	int place_change = charged_indexes[rnd_idx];
+/*
 	//fprintf(screen,"CAMBIO %5d\n", cambio);
     //fprintf(screen, "cambio = %d, lugar = %d \n", cambio, cargadas[cambio]);
 	int carga_vieja = array[cargadas[cambio]];
-
 	double energia_vieja = 0.0;
+*/
+	// Comparison of old and new configurations
+	int old_chrg = charge_on_residues[place_change];
+	double old_energy = 0.0;
 
+	for(int i=0;i<total_res_charged;i++){	
+	// Compute of the electrostatic interactions of the residue in place_change 
+     if (i != rnd_idx)
+     {
+       old_energy+=electro_i_j(place_change, charged_indexes[i], charge_on_residues);
+     }
+    }
+    fprintf(screen, "Old Energy = %8.6f, Old Charge = %5d \n", old_energy, old_chrg);
+
+
+/*
 	for(int i=0;i<numTotalCargadas;i++){
      if (i != cambio)
      {
@@ -5799,145 +5886,164 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
      }
     }
     fprintf(screen, "Energia anterior = %8.6f \n", energia_vieja);
-
+//*/
     // Delta de energia entre cambios -----
-	double energia_nueva = 0.0;
+//	double energia_nueva = 0.0;
+
+
+	double new_energy = 0.0;
+	int new_chrg = charge_flip(old_chrg,letter[rnd_idx]); 
+	// Charge flip for trial
+	charge_on_residue[place_change]=new_chrg;
 
 // CAMBIO LAS CARGAS
+/*
 	if(array[cargadas[cambio]]==-1){
 		array[cargadas[cambio]]=0;
 	  }else if(array[cargadas[cambio]]==0){
 		array[cargadas[cambio]]=-1;
 	  }
-	int carga_nueva = array[cargadas[cambio]];	
+	int carga_nueva = array[cargadas[cambio]];
+//*/
 
-	for(int i=0;i<numTotalCargadas;i++){
-     if (i != cambio)
+// ya cambie las cargas me falta modificar lo de la energia e imprimir las dos cosas para ver que funque.	
+
+	for(int i=0;i<total_res_charged;i++){
+     if (i != rnd_idx)
      {
-       energia_nueva+=electro_i_j(cargadas[cambio], cargadas[i], array);
+       new_energy+=electro_i_j(place_change, charged_indexes[i], charge_on_residues);
      }
     }
-    fprintf(screen, "Energia nueva = %8.6f \n", energia_nueva);
+    fprintf(screen, "New Energy = %8.6f, New Charge = %5d \n", new_energy, new_chrg);
+	
+	charge_on_residue[place_change]=old_chrg; // Back to old charge
+/*
 // REVIERTO EL CAMBIO
 	if(array[cargadas[cambio]]==-1){
 		array[cargadas[cambio]]=0;
 	  }else if(array[cargadas[cambio]]==0){
 		array[cargadas[cambio]]=-1;
 	  }
+//*/
 
+	//double delta_electro=energia_nueva-energia_vieja;
 
-	double delta_electro=energia_nueva-energia_vieja;
+	double delta_electro = new_energy - old_energy;
 
-	fprintf(screen, "Delta electrostatico = %8.6f \n", delta_electro);
+	fprintf(screen, "Delta Elec = %8.6f \n", delta_electro);
 
-	// El delta electro asi calculado es deltaE = viejoestado - nuevo; con lo cual
-	// un valor positivo refleja que en el estado nuevo la energia es menor
-	int direccion = carga_nueva - carga_vieja;
+	int direction = new_chrg - old_chrg; //carga_nueva - carga_vieja;
 	
-	fprintf(screen, "pH = %8.6f \n", pH);
-	fprintf(screen, "pKa1 = %8.6f \n", pKa1);
-	fprintf(screen, "pKa2 = %8.6f \n", pKa2);
-	fprintf(screen, "direccion = %5d \n", direccion);
+	fprintf(screen, "Simulation pH = %8.6f \n", pH);
+	fprintf(screen, "pKa of changing residue = %8.6f \n", pKas[rnd_idx]);
+	fprintf(screen, "Sign of acid-base term = %5d \n", direction);
 	
-    // ACA TENGO QUE USAR EL PKA DE LA DEL CAMBIO
+
 	double termpH = 0.0;
+
+	termpH = direction*k_b*mc_temp*log(10)*(pH-pKas[rnd_idx]);
+/*
 	if(cambio==0){
-	  termpH = direccion*boltz*calor*log(10)*(pH-pKa1);
+	  termpH = direccion*k_b*mc_temp*log(10)*(pH-pKa1);
 	}else if(cambio==1){
-	  termpH = direccion*boltz*calor*log(10)*(pH-pKa2); 
+	  termpH = direccion*k_b*mc_temp*log(10)*(pH-pKa2); 
     }
+//*/
 	fprintf(screen, "termpH = %8.6f \n", termpH);
 
-	delta_electro = delta_electro + termpH;
+	double delta_mc = delta_electro + termpH;
 
-	fprintf(screen, "Delta electrostatico = %8.6f \n", delta_electro);
+	fprintf(screen, "Delta MC = %8.6f \n", delta_mc);
 
-
-	
-	// ---------------
-
-    // Monte carlo 
-	if (delta_electro >= 0) {
+//                Monte carlo trial
+	if (delta_mc >= 0){
       double random_probability = (double)rand()/RAND_MAX;
-      fprintf(screen,"--------------MC--------------\n");
-      fprintf(screen,"random number %f\n", random_probability);
-      fprintf(screen,"temperature %8.6f\n", calor);
-	  fprintf(screen,"boltzmann factor %8.6f\n", boltz);
-	  fprintf(screen,"exponential factor %8.6f\n", exp(-delta_electro/(boltz*calor)));
-      if (random_probability > exp(-delta_electro/(boltz*calor))) {
-	  fprintf(screen,"rejected!\n");
-	  FILE *mcout;
-      mcout = fopen("MC.result", "a");
+      fprintf(screen,"MC Temperature %8.6f\n", mc_temp);
+	  fprintf(screen,"Boltzmann Factor %8.6f\n", k_b);
+	  fprintf(screen,"Random Probability %f\n", random_probability);
+	  fprintf(screen,"Exponential Factor %8.6f\n", exp(-delta_mc/(k_b*mc_temp)));
+      if (random_probability > exp(-delta_mc/(k_b*mc_temp))) {
+		  fprintf(screen,"Change rejected!\n");
+// Charge state output
+		  FILE *mcout;
+		  mcout = fopen("MC.result", "a");
+		  fprintf(mcout, "%5d\t", ntimestep);
+		  for(int i=0;i<total_res_charged;i++){
+				int place_i=charged_indexes[i];
+				fprintf(mcout, "%.2f\t", charge_on_residue[place_i]);
+	/*
+					fprintf(mcout, "%d", pos_i);
+					fprintf(mcout, "     ");				
+					fprintf(mcout, "%8.6f", array[pos_i]);
+					fprintf(mcout, "     ");				
+					fprintf(mcout, "%d\n", paso);
+	//*/
+		  }
+		  fprintf(mcout, "\n");
+		  fclose(mcout);
+	  }else{
+		  fprintf(screen,"Change accepted!\n");
+		  charge_on_residue[place_change]=new_chrg;
+	/*
+		  if(array[cargadas[cambio]]==-1){
+			array[cargadas[cambio]]=0;
+		  }else if(array[cargadas[cambio]]==0){
+			array[cargadas[cambio]]=-1;
+		  }
+	//*/
+		   
+		  fprintf(screen, "Changing charge in place %d \n", charged_indexes[rnd_idx]);
 
-      for(int i=0;i<numTotalCargadas;i++){
-			int pos_i=cargadas[i];
-		    	fprintf(mcout, "%d", pos_i);
-				fprintf(mcout, "     ");				
-				fprintf(mcout, "%8.6f", array[pos_i]);
-				fprintf(mcout, "     ");				
-				fprintf(mcout, "%d\n", paso);
-
-	  }
-	  fclose(mcout);
-	  }
-      else {
-	  fprintf(screen,"accepted!\n");
-	  if(array[cargadas[cambio]]==-1){
-		array[cargadas[cambio]]=0;
-	  }else if(array[cargadas[cambio]]==0){
-		array[cargadas[cambio]]=-1;
-	  }
-	   
-      fprintf(screen, "Cambiando carga en lugar %d \n", cargadas[cambio]);
-	  // COMO HUBO UN CAMBIO GUARDO EN EL ARCHIVO
-	  FILE *mcout;
-      mcout = fopen("MC.result", "a");
-
-      for(int i=0;i<numTotalCargadas;i++){
-			int pos_i=cargadas[i];
-		    	fprintf(mcout, "%d", pos_i);
-				fprintf(mcout, "     ");				
-				fprintf(mcout, "%8.6f", array[pos_i]);
-				fprintf(mcout, "     ");				
-				fprintf(mcout, "%d\n", paso);
-
-	  }
-	  fclose(mcout);
-
-
-
-
+// Charge state output
+		  FILE *mcout;
+		  mcout = fopen("MC.result", "a");
+		  fprintf(mcout, "%5d\t", ntimestep);
+		  for(int i=0;i<total_res_charged;i++){
+				int place_i=charged_indexes[i];
+				fprintf(mcout, "%.2f\t", charge_on_residue[place_i]);
+	/*
+					fprintf(mcout, "%d", pos_i);
+					fprintf(mcout, "     ");				
+					fprintf(mcout, "%8.6f", array[pos_i]);
+					fprintf(mcout, "     ");				
+					fprintf(mcout, "%d\n", paso);
+	//*/
+		  }
+		  fprintf(mcout, "\n");
+		  fclose(mcout);
       }
 	  fprintf(screen,"---------------MC------------\n");
     }else{
-	  fprintf(screen,"--------------MC--------------\n");
-      fprintf(screen,"delta electro negativo\n");
-	  fprintf(screen,"accepted!\n");
-	  fprintf(screen,"---------------MC------------\n");
+      fprintf(screen,"New state has less energy\n");
+	  fprintf(screen,"Change accepted!\n");
+	  charge_on_residue[place_change]=new_chrg;
+      fprintf(screen, "Changing charge in place %d \n", charged_indexes[rnd_idx]);
 
+/*
 	  if(array[cargadas[cambio]]==-1){
 		array[cargadas[cambio]]=0;
 	  }else if(array[cargadas[cambio]]==0){
 		array[cargadas[cambio]]=-1;
 	  }
-
-	  // COMO HUBO UN CAMBIO GUARDO EN EL ARCHIVO
+//*/
+// Charge state output
 	  FILE *mcout;
       mcout = fopen("MC.result", "a");
-
-      for(int i=0;i<numTotalCargadas;i++){
-			int pos_i=cargadas[i];
+	  fprintf(mcout, "%5d\t", ntimestep);
+      for(int i=0;i<total_res_charged;i++){
+			int place_i=charged_indexes[i];
+			fprintf(mcout, "%.2f\t", charge_on_residue[place_i]);
+/*
 		    	fprintf(mcout, "%d", pos_i);
 				fprintf(mcout, "     ");				
 				fprintf(mcout, "%8.6f", array[pos_i]);
 				fprintf(mcout, "     ");				
 				fprintf(mcout, "%d\n", paso);
-
+//*/
 	  }
-	  fclose(mcout); 
-      fprintf(screen, "Cambiando carga en lugar %d \n", cargadas[cambio]);
-
-	  
+	  fprintf(mcout, "\n");
+	  fclose(mcout);
+	  fprintf(screen,"---------------MC------------\n");
 	}
 		
 
@@ -5945,11 +6051,41 @@ void FixBackbone::cambio_cargas(double *array, int arraysize,int paso)
 //-------------------------------------------------------------
 
 
-
+/*
     for(int i=0;i<numTotalCargadas;i++){
         fprintf(screen, "lugar = %5d, carga = %8.6f\n", cargadas[i], array[cargadas[i]]);
     }
+//*/
+}
 
+double FixBackbone::temp_calc(int igroup){
+    char **arg = new char*[3];
+    arg[0] = (char *) "velocity_temp";
+    arg[1] = group->names[igroup]; // QUE SIGNIFICA ACA IGROUP VER CON MAS CUIDADO
+    arg[2] = (char *) "temp";
+	ComputeTemp * temperature = new ComputeTemp(lmp,3,arg);
+	temperature->init();
+    return temperature->compute_scalar();
+}
+
+
+int FixBackbone::charge_flip(int charge, char letter){
+	int charge_flipped;
+	if(letter=='D' || letter=='E'){ // Acid
+		if(charge==-1){
+			charge_flipped=0;
+		  }else if(charge==0){
+			charge_flipped=-1;
+		  }
+		return charge_flipped;
+	}else if(letter=='R' || letter=='K'){ // Base
+		if(charge==1){
+			charge_flipped=0;
+		  }else if(charge==0){
+			charge_flipped=1;
+		  }
+		return charge_flipped;
+	}
 }
 
 double FixBackbone::electro_i_j(int i, int j, double *array){ 
@@ -7478,39 +7614,52 @@ void FixBackbone::compute_backbone()
   if (huckel_flag) {
 
 //----------Control de cada cuanto se ejecuta el cambio de las cargas----------------
-	int residuosTotales=51;
+	//int residuosTotales=51; // es n!!!!!!
 
+	//fprintf(screen,"total residues: %5d \n",total_residues);
 
+//void FixBackbone::mc_charge_change(double *charge_on_residues, int total_res_charged,
+//									   int *charged_indexes, double *pKas, char *letter)
 
-	if(paso%freqMC==0){
-		fprintf(screen, "Intento de Monte Carlo\n"); // AGREGADO FRANCO
-    	cambio_cargas(charge_on_residue, residuosTotales,paso); // Ese 51 es el numero total de residuos	
+	if(ntimestep%freqMC==0){
+ // AGREGADO FRANCO
+    	mc_charge_change(charge_on_residue, total_res_charged, charged_indexes, pKas, letter); // Ese 51 es el numero total de residuos	
 		
 	}else{
-			  //GUARDO EN EL ARCHIVO
+// Charge state output
 	  FILE *mcout;
-      mcout = fopen("MC.result", "a");
-      int pos_i=22;
-	  fprintf(mcout, "%d", pos_i);
-      fprintf(mcout, "     ");				
-	  fprintf(mcout, "%8.6f", charge_on_residue[pos_i]);
-      fprintf(mcout, "     ");				
-	  fprintf(mcout, "%d\n", paso);
-		    
-	  pos_i=37;
-		    	fprintf(mcout, "%d", pos_i);
+	  mcout = fopen("MC.result", "a");
+	  fprintf(mcout, "%5d\t", ntimestep);
+	  for(int i=0;i<total_res_charged;i++){
+			int place_i=charged_indexes[i];
+			fprintf(mcout, "%.2f\t", charge_on_residue[place_i]);
+/*
+				fprintf(mcout, "%d", pos_i);
 				fprintf(mcout, "     ");				
-				fprintf(mcout, "%8.6f", charge_on_residue[pos_i]);
+				fprintf(mcout, "%8.6f", array[pos_i]);
 				fprintf(mcout, "     ");				
 				fprintf(mcout, "%d\n", paso);
-		    
-	fclose(mcout);
+//*/
+	  }
+	  fprintf(mcout, "\n");
+	  fclose(mcout);
 	}
-
-// EN ESTA PARTE GUARDO LA INFO EN ALGUN ARCHIVO DEL PASO Y EL ESTADO DE CARGAS DE LOS RESIDUOS
+// Counting of times the residue is uncharged to get prot/deprot fraction
+	FILE *deprotout;
+    deprotout = fopen("MC.deprot", "a");
+	fprintf(deprotout,"%5d\t",ntimestep);
+	for(int i=0;i<total_res_charged;i++){
+	int place_i = charged_indexes[i];
+		if(charge_on_residue[place_i]==0){
+			times_uncharged[i]++;
+		}
+		fprintf(deprotout,"%5d\t",times_uncharged[i]);
+		
+	}
+	fprintf(deprotout,"\n");
+    fclose(deprotout);
 	
-
-	paso++;
+	
 
   }
 
