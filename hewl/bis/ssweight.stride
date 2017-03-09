@@ -1,0 +1,208 @@
+REM  --------------------------------------------------------------------  5B1F
+REM                                                                        5B1F
+REM  STRIDE: Knowledge-based secondary structure assignment                5B1F
+REM  Please cite: D.Frishman & P.Argos, Proteins XX, XXX-XXX, 1995         5B1F
+REM                                                                        5B1F
+REM  Residue accessible surface area calculation                           5B1F
+REM  Please cite: F.Eisenhaber & P.Argos, J.Comp.Chem. 14, 1272-1280, 1993 5B1F
+REM               F.Eisenhaber et al., J.Comp.Chem., 1994, submitted       5B1F
+REM                                                                        5B1F
+REM  ------------------------ General information -----------------------  5B1F
+REM                                                                        5B1F
+HDR  HYDROLASE                               03-DEC-15   5B1F              5B1F
+CMP  MOL_ID: 1;                                                            5B1F
+CMP   MOLECULE: LYSOZYME C;                                                5B1F
+CMP   CHAIN: A;                                                            5B1F
+CMP   SYNONYM: 1,4-BETA-N-ACETYLMURAMIDASE C,ALLERGEN GAL D IV;            5B1F
+CMP   EC: 3.2.1.17                                                         5B1F
+SRC  MOL_ID: 1;                                                            5B1F
+SRC   ORGANISM_SCIENTIFIC: GALLUS GALLUS;                                  5B1F
+SRC   ORGANISM_COMMON: CHICKEN;                                            5B1F
+SRC   ORGANISM_TAXID: 9031                                                 5B1F
+AUT  M.SUGAHARA,M.SUZUKI,E.NANGO                                           5B1F
+REM                                                                        5B1F
+REM  -------------------- Secondary structure summary -------------------  5B1F
+REM                                                                        5B1F
+CHN  /home/proj/stride/tmp/tmpUPXEwXpdb A                                  5B1F
+REM                                                                        5B1F
+REM                .         .         .         .         .               5B1F
+SEQ  1    KVFGRCELAAAMKRHGLDNYRGYSLGNWVCAAKFESNFNTQATNRNTDGS   50          5B1F
+STR        B  HHHHHHHHHHH TTTGGG  HHHHHHHHHHHHTTBTTTEEETTTT                5B1F
+REM                                                                        5B1F
+REM                .         .         .         .         .               5B1F
+SEQ  51   TDYGILQINSRWWCNDGRTPGSRNLCNIPCSALLSSDITASVNCAKKIVS  100          5B1F
+STR       EEETTTTEETTTT BTTTTTTT TTTT BGGGG TTTHHHHHHHHHHHHH               5B1F
+REM                                                                        5B1F
+REM                .         .                                             5B1F
+SEQ  101  DGNGMNAWVAWRNRCKGTDVQAWIRGCRL                       129          5B1F
+STR       TTTTTTTTHHHHHHHTTT GGGGGTTT                                      5B1F
+REM                                                                        5B1F
+REM                                                                        5B1F
+REM                                                                        5B1F
+LOC  AlphaHelix   ARG     5 A      HIS     15 A                            5B1F
+LOC  AlphaHelix   LEU    25 A      SER     36 A                            5B1F
+LOC  AlphaHelix   ILE    88 A      SER    100 A                            5B1F
+LOC  AlphaHelix   VAL   109 A      CYS    115 A                            5B1F
+LOC  310Helix     TYR    20 A      GLY     22 A                            5B1F
+LOC  310Helix     CYS    80 A      LEU     83 A                            5B1F
+LOC  310Helix     VAL   120 A      ILE    124 A                            5B1F
+LOC  Strand       THR    43 A      ARG     45 A                            5B1F
+LOC  Strand       THR    51 A      TYR     53 A                            5B1F
+LOC  Strand       ILE    58 A      ASN     59 A                            5B1F
+LOC  TurnII       LEU    17 A      TYR     20 A                            5B1F
+LOC  TurnI'       SER    36 A      ASN     39 A                            5B1F
+LOC  TurnI        ASN    39 A      ALA     42 A                            5B1F
+LOC  TurnI        ASN    46 A      GLY     49 A                            5B1F
+LOC  TurnI        GLY    54 A      GLN     57 A                            5B1F
+LOC  TurnI        ASN    59 A      TRP     62 A                            5B1F
+LOC  TurnI        SER    60 A      TRP     63 A                            5B1F
+LOC  TurnIV       ASP    66 A      THR     69 A                            5B1F
+LOC  TurnII       THR    69 A      SER     72 A                            5B1F
+LOC  TurnI        ASN    74 A      ASN     77 A                            5B1F
+LOC  TurnVIII     SER    85 A      ILE     88 A                            5B1F
+LOC  TurnIV       ASP   101 A      GLY    104 A                            5B1F
+LOC  TurnII'      ASN   103 A      ASN    106 A                            5B1F
+LOC  TurnI        GLY   104 A      ALA    107 A                            5B1F
+LOC  TurnI        MET   105 A      TRP    108 A                            5B1F
+LOC  TurnVIII     ASN   106 A      VAL    109 A                            5B1F
+LOC  TurnII       CYS   115 A      THR    118 A                            5B1F
+LOC  TurnII       ILE   124 A      CYS    127 A                            5B1F
+LOC  Disulfide    CYS     6 A      CYS    127 A            PDB             5B1F
+LOC  Disulfide    CYS    30 A      CYS    115 A            PDB             5B1F
+LOC  Disulfide    CYS    64 A      CYS     80 A            PDB             5B1F
+LOC  Disulfide    CYS    76 A      CYS     94 A            PDB             5B1F
+REM                                                                        5B1F
+REM  --------------- Detailed secondary structure assignment-------------  5B1F
+REM                                                                        5B1F
+REM  |---Residue---|    |--Structure--|   |-Phi-|   |-Psi-|  |-Area-|      5B1F
+ASG  LYS A    1    1    C          Coil    360.00    132.39      83.8      5B1F
+ASG  VAL A    2    2    B        Bridge   -104.55    105.88      98.7      5B1F
+ASG  PHE A    3    3    C          Coil    -67.29    146.81      15.0      5B1F
+ASG  GLY A    4    4    C          Coil    -73.30    155.88      34.8      5B1F
+ASG  ARG A    5    5    H    AlphaHelix    -56.98    -54.32      87.2      5B1F
+ASG  CYS A    6    6    H    AlphaHelix    -71.58    -34.03      42.1      5B1F
+ASG  GLU A    7    7    H    AlphaHelix    -56.42    -49.31      94.9      5B1F
+ASG  LEU A    8    8    H    AlphaHelix    -66.90    -37.08       0.0      5B1F
+ASG  ALA A    9    9    H    AlphaHelix    -58.60    -46.83       0.0      5B1F
+ASG  ALA A   10   10    H    AlphaHelix    -65.12    -44.85      40.2      5B1F
+ASG  ALA A   11   11    H    AlphaHelix    -61.91    -39.79      16.9      5B1F
+ASG  MET A   12   12    H    AlphaHelix    -65.60    -41.97       1.0      5B1F
+ASG  LYS A   13   13    H    AlphaHelix    -61.90    -44.41      91.2      5B1F
+ASG  ARG A   14   14    H    AlphaHelix    -61.46    -26.70     189.4      5B1F
+ASG  HIS A   15   15    H    AlphaHelix    -96.04     14.31      28.6      5B1F
+ASG  GLY A   16   16    C          Coil     85.46     19.13      37.4      5B1F
+ASG  LEU A   17   17    T          Turn    -87.58    -21.41       0.0      5B1F
+ASG  ASP A   18   18    T          Turn    -62.67    123.72      56.1      5B1F
+ASG  ASN A   19   19    T          Turn     58.99     16.38     102.5      5B1F
+ASG  TYR A   20   20    G      310Helix    -62.74    123.38      61.9      5B1F
+ASG  ARG A   21   21    G      310Helix     55.97     27.32     151.2      5B1F
+ASG  GLY A   22   22    G      310Helix     84.71      8.45      65.9      5B1F
+ASG  TYR A   23   23    C          Coil   -100.63    113.00      46.7      5B1F
+ASG  SER A   24   24    C          Coil    -63.07    161.27      40.7      5B1F
+ASG  LEU A   25   25    H    AlphaHelix    -56.49    -37.16       0.7      5B1F
+ASG  GLY A   26   26    H    AlphaHelix    -56.22    -31.13       0.2      5B1F
+ASG  ASN A   27   27    H    AlphaHelix    -64.59    -45.26      20.2      5B1F
+ASG  TRP A   28   28    H    AlphaHelix    -68.36    -42.17       0.0      5B1F
+ASG  VAL A   29   29    H    AlphaHelix    -66.33    -42.34       0.0      5B1F
+ASG  CYS A   30   30    H    AlphaHelix    -59.69    -46.05       0.2      5B1F
+ASG  ALA A   31   31    H    AlphaHelix    -61.87    -44.75       0.0      5B1F
+ASG  ALA A   32   32    H    AlphaHelix    -62.22    -40.13       0.0      5B1F
+ASG  LYS A   33   33    H    AlphaHelix    -53.74    -48.82      63.3      5B1F
+ASG  PHE A   34   34    H    AlphaHelix    -92.97    -14.22      58.8      5B1F
+ASG  GLU A   35   35    H    AlphaHelix    -81.84    -39.44      34.0      5B1F
+ASG  SER A   36   36    H    AlphaHelix   -136.80     -1.34       9.8      5B1F
+ASG  ASN A   37   37    T          Turn     52.01     37.23      96.4      5B1F
+ASG  PHE A   38   38    T          Turn     70.11     18.98      14.8      5B1F
+ASG  ASN A   39   39    B        Bridge   -106.28    119.27      46.3      5B1F
+ASG  THR A   40   40    T          Turn    -68.67    -21.45       1.8      5B1F
+ASG  GLN A   41   41    T          Turn    -91.61      5.09     129.3      5B1F
+ASG  ALA A   42   42    T          Turn    -62.25    128.71      15.9      5B1F
+ASG  THR A   43   43    E        Strand   -131.07    141.16      72.5      5B1F
+ASG  ASN A   44   44    E        Strand   -139.76    136.46      91.1      5B1F
+ASG  ARG A   45   45    E        Strand    -89.70    135.22     139.0      5B1F
+ASG  ASN A   46   46    T          Turn    -95.31    163.64      47.6      5B1F
+ASG  THR A   47   47    T          Turn    -60.26    -34.94     159.3      5B1F
+ASG  ASP A   48   48    T          Turn    -79.36      2.64      80.9      5B1F
+ASG  GLY A   49   49    T          Turn     92.48     -3.58      20.2      5B1F
+ASG  SER A   50   50    C          Coil    -77.35    165.60       0.0      5B1F
+ASG  THR A   51   51    E        Strand   -129.37    143.59       2.8      5B1F
+ASG  ASP A   52   52    E        Strand   -100.34    138.55      27.9      5B1F
+ASG  TYR A   53   53    E        Strand   -127.58    129.80      24.7      5B1F
+ASG  GLY A   54   54    T          Turn     89.56   -169.02       0.0      5B1F
+ASG  ILE A   55   55    T          Turn    -56.35    -33.24       3.6      5B1F
+ASG  LEU A   56   56    T          Turn   -115.49     15.02       0.6      5B1F
+ASG  GLN A   57   57    T          Turn     53.17     54.38      11.1      5B1F
+ASG  ILE A   58   58    E        Strand    -80.66    136.25       2.1      5B1F
+ASG  ASN A   59   59    E        Strand    -88.78    128.26      36.8      5B1F
+ASG  SER A   60   60    T          Turn    -70.42    -12.01       0.0      5B1F
+ASG  ARG A   61   61    T          Turn    -60.11    -33.13      65.0      5B1F
+ASG  TRP A   62   62    T          Turn   -128.86    -27.97     130.5      5B1F
+ASG  TRP A   63   63    T          Turn   -114.36    -24.00      30.3      5B1F
+ASG  CYS A   64   64    C          Coil   -144.02    160.86       0.0      5B1F
+ASG  ASN A   65   65    B        Bridge    -98.62    124.69      82.2      5B1F
+ASG  ASP A   66   66    T          Turn   -121.65      6.24      35.6      5B1F
+ASG  GLY A   67   67    T          Turn     71.25      4.07      67.7      5B1F
+ASG  ARG A   68   68    T          Turn   -134.65     23.14     121.4      5B1F
+ASG  THR A   69   69    T          Turn   -125.73     85.47       9.8      5B1F
+ASG  PRO A   70   70    T          Turn    -56.73    128.91     121.6      5B1F
+ASG  GLY A   71   71    T          Turn     84.45     10.74      85.1      5B1F
+ASG  SER A   72   72    T          Turn    -93.54    168.67      30.5      5B1F
+ASG  ARG A   73   73    C          Coil   -102.41    165.56     134.6      5B1F
+ASG  ASN A   74   74    T          Turn   -130.02     63.78      41.0      5B1F
+ASG  LEU A   75   75    T          Turn    -68.89    -24.49      60.7      5B1F
+ASG  CYS A   76   76    T          Turn    -90.79     -7.61      18.5      5B1F
+ASG  ASN A   77   77    T          Turn     56.90     58.17     116.5      5B1F
+ASG  ILE A   78   78    C          Coil   -147.16    153.63      33.7      5B1F
+ASG  PRO A   79   79    B        Bridge    -71.27    138.44      74.2      5B1F
+ASG  CYS A   80   80    G      310Helix    -52.31    -28.40       1.4      5B1F
+ASG  SER A   81   81    G      310Helix    -67.76    -27.93      84.3      5B1F
+ASG  ALA A   82   82    G      310Helix    -63.92    -18.75      36.4      5B1F
+ASG  LEU A   83   83    G      310Helix    -78.82      0.68       2.4      5B1F
+ASG  LEU A   84   84    C          Coil   -109.90     -2.06      45.7      5B1F
+ASG  SER A   85   85    T          Turn    -62.73    157.91      54.4      5B1F
+ASG  SER A   86   86    T          Turn    -73.66    -14.62      74.1      5B1F
+ASG  ASP A   87   87    T          Turn    -88.06    116.85      86.4      5B1F
+ASG  ILE A   88   88    H    AlphaHelix    -84.79      1.65       6.0      5B1F
+ASG  THR A   89   89    H    AlphaHelix    -46.83    -56.75      40.7      5B1F
+ASG  ALA A   90   90    H    AlphaHelix    -60.38    -37.76      27.6      5B1F
+ASG  SER A   91   91    H    AlphaHelix    -68.24    -35.63       3.8      5B1F
+ASG  VAL A   92   92    H    AlphaHelix    -69.64    -46.07       2.2      5B1F
+ASG  ASN A   93   93    H    AlphaHelix    -62.32    -37.63      87.7      5B1F
+ASG  CYS A   94   94    H    AlphaHelix    -71.85    -41.14       3.8      5B1F
+ASG  ALA A   95   95    H    AlphaHelix    -57.02    -39.85       0.0      5B1F
+ASG  LYS A   96   96    H    AlphaHelix    -60.36    -39.78      43.3      5B1F
+ASG  LYS A   97   97    H    AlphaHelix    -69.92    -36.56     110.8      5B1F
+ASG  ILE A   98   98    H    AlphaHelix    -67.05    -54.26       4.0      5B1F
+ASG  VAL A   99   99    H    AlphaHelix    -56.89    -20.13       4.8      5B1F
+ASG  SER A  100  100    H    AlphaHelix    -95.42     -1.88      34.8      5B1F
+ASG  ASP A  101  101    T          Turn    -87.18     17.45      75.1      5B1F
+ASG  GLY A  102  102    T          Turn    113.93    -33.06      69.4      5B1F
+ASG  ASN A  103  103    T          Turn   -103.78      3.77     102.1      5B1F
+ASG  GLY A  104  104    T          Turn     55.34   -141.88       8.6      5B1F
+ASG  MET A  105  105    T          Turn    -82.10     -4.08       0.0      5B1F
+ASG  ASN A  106  106    T          Turn    -59.36    -22.26      47.7      5B1F
+ASG  ALA A  107  107    T          Turn    -51.75    -27.41      53.2      5B1F
+ASG  TRP A  108  108    T          Turn    -97.78    107.48       9.7      5B1F
+ASG  VAL A  109  109    H    AlphaHelix    -54.37    -42.95      77.6      5B1F
+ASG  ALA A  110  110    H    AlphaHelix    -70.86    -32.64      13.7      5B1F
+ASG  TRP A  111  111    H    AlphaHelix    -63.41    -46.74      12.8      5B1F
+ASG  ARG A  112  112    H    AlphaHelix    -60.89    -41.56     103.1      5B1F
+ASG  ASN A  113  113    H    AlphaHelix    -90.59    -16.83     113.7      5B1F
+ASG  ARG A  114  114    H    AlphaHelix   -134.61     -7.15     138.9      5B1F
+ASG  CYS A  115  115    H    AlphaHelix   -122.60    -43.82       0.0      5B1F
+ASG  LYS A  116  116    T          Turn    -53.80    128.82     102.9      5B1F
+ASG  GLY A  117  117    T          Turn     74.88     13.22      87.0      5B1F
+ASG  THR A  118  118    T          Turn   -110.92    172.52      73.4      5B1F
+ASG  ASP A  119  119    C          Coil    -79.18     89.14      90.4      5B1F
+ASG  VAL A  120  120    G      310Helix    -75.78    -20.44      15.6      5B1F
+ASG  GLN A  121  121    G      310Helix    -58.97    -25.96      90.0      5B1F
+ASG  ALA A  122  122    G      310Helix    -60.03    -28.76      39.2      5B1F
+ASG  TRP A  123  123    G      310Helix    -70.25    -13.08      56.5      5B1F
+ASG  ILE A  124  124    G      310Helix   -119.38      4.61      32.6      5B1F
+ASG  ARG A  125  125    T          Turn    -55.03    137.77     133.0      5B1F
+ASG  GLY A  126  126    T          Turn     86.26    -18.13      86.0      5B1F
+ASG  CYS A  127  127    T          Turn    -77.54    144.90      21.2      5B1F
+ASG  ARG A  128  128    C          Coil    -90.29    116.07     232.7      5B1F
+ASG  LEU A  129  129    C          Coil   -120.47    360.00     111.2      5B1F
+
+
