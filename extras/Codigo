@@ -1,0 +1,16 @@
+//--------------------Coordenadas-AWSEM------------------------------------
+/*
+fprintf(screen, "First atom coordinates Calpha: x: %.2f, y: %.2f, z: %.2f\n",xca[0][0],xca[0][1],xca[0][2]);
+fprintf(screen, "First atom coordinates Cbeta: x: %.2f, y: %.2f, z: %.2f\n",xcb[0][0],xcb[0][1],xcb[0][2]);
+fprintf(screen, "First atom coordinates O: x: %.2f, y: %.2f, z: %.2f\n",xo[0][0],xo[0][1],xo[0][2]);
+fprintf(screen, "First atom coordinates N: x: %.2f, y: %.2f, z: %.2f\n",xn[0][0],xn[0][1],xn[0][2]);
+fprintf(screen, "First atom coordinates C': x: %.2f, y: %.2f, z: %.2f\n",xcp[0][0],xcp[0][1],xcp[0][2]);
+fprintf(screen, "First atom coordinates H: x: %.2f, y: %.2f, z: %.2f\n",xh[0][0],xh[0][1],xh[0][2]);
+fprintf(screen,"~~~~~~~\n");
+fprintf(screen, "Last atom coordinates Calpha: x: %.2f, y: %.2f, z: %.2f\n",xca[n-1][0],xca[n-1][1],xca[n-1][2]);
+fprintf(screen, "Last atom coordinates Cbeta: x: %.2f, y: %.2f, z: %.2f\n",xcb[n-1][0],xcb[n-1][1],xcb[n-1][2]);
+fprintf(screen, "Last atom coordinates O: x: %.2f, y: %.2f, z: %.2f\n",xo[n-1][0],xo[n-1][1],xo[n-1][2]);
+fprintf(screen, "Last atom coordinates N: x: %.2f, y: %.2f, z: %.2f\n",xn[n-1][0],xn[n-1][1],xn[n-1][2]);
+fprintf(screen, "Last atom coordinates C': x: %.2f, y: %.2f, z: %.2f\n",xcp[n-1][0],xcp[n-1][1],xcp[n-1][2]);
+fprintf(screen, "Last atom coordinates H: x: %.2f, y: %.2f, z: %.2f\n",xh[n-1][0],xh[n-1][1],xh[n-1][2]);
+*/
