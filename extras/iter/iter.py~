@@ -1,0 +1,189 @@
+import os
+import numpy as np
+import matplotlib.pyplot as plt
+from scipy.optimize import curve_fit
+from mpl_toolkits.mplot3d import Axes3D
+import sys
+from Bio.PDB import *
+
+
+def debhuck(r,q1,q2,kpp,kmm,kpm,ld,eps):
+	if q1*q2<=0:
+		y = (kpm*q1*q2*np.exp(-r/ld))/(eps*r)
+		return y
+	elif q1>0 and q2>0:
+		y = (kpp*q1*q2*np.exp(-r/ld))/(eps*r)
+		return y
+	elif q1<0 and q2<0:
+		y = (kmm*q1*q2*np.exp(-r/ld))/(eps*r)
+		return y
+	else:
+		print("ERROR debhuck")
+
+def qpart(aob,dpka):
+	if aob=='a':
+		qp = -1/(1+10**(-dpka))
+		return qp
+	elif aob=='b':
+		qp = +1/(1+10**(-dpka))
+		return qp
+	else:
+		print("ERROR qpart")
+
+p = PDBParser()                   
+structure = p.get_structure("2LZT", "2lzt.pdb")
+# Get residue positions from a structure
+res = []
+bx = []
+by = []
+bz = []
+for chains in structure:
+	for chain in chains:
+		for residue in chain:			
+			atom_list = Selection.unfold_entities(residue, 'A')
+			res_list = Selection.unfold_entities(residue, 'R')
+			name = residue.get_resname()
+			res.append(name)
+			try:
+				beta = residue['CB']
+				r = beta.get_vector()
+				bx.append(r[0])
+				by.append(r[1])
+				bz.append(r[2])
+			except KeyError:
+				alpha = residue['CA']
+				p = alpha.get_vector()
+				bx.append(p[0])
+				by.append(p[1])
+				bz.append(p[2])
+'''
+print(res)
+print(len(res))
+print(len(bx))
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(bx,by,bz)
+plt.show()
+'''
+#Acid or base clasification. Relevant residues. Initial pka
+aobList=[]
+chargedList=[]
+pka_old=[]
+pka_new=[]
+x=[]
+y=[]
+z=[]
+acid=0
+base=0
+total=0
+for idx,r in enumerate(res):
+	if r=='ASP' or r=='GLU':
+		aobList.append('a')
+		chargedList.append(idx)
+		x.append(bx[idx])
+		y.append(by[idx])
+		z.append(bz[idx])
+		acid+=1
+		if r=='ASP':
+			pka_old.append(4.0)
+		elif r=='GLU':
+			pka_old.append(4.5)
+		pka_new.append(0.0)
+	elif r=='HIS' or r=='LYS' or r=='ARG':
+		aobList.append('b')
+		chargedList.append(idx)
+		x.append(bx[idx])
+		y.append(by[idx])
+		z.append(bz[idx])
+		base+=1
+		if r=='HIS':
+			pka_old.append(6.3)
+		elif r=='LYS':
+			pka_old.append(10.6)
+		elif r=='ARG':
+			pka_old.append(12.0)
+		pka_new.append(0.0)
+
+total=acid+base
+'''
+print(aobList)
+print(chargedList)
+print(pka_old)
+fig = plt.figure()
+ax = fig.add_subplot(111, projection='3d')
+ax.scatter(x,y,z)
+plt.show()
+'''
+
+#Paso iterativo
+kpp=4.15
+kmm=4.15
+kpm=4.15
+ld=10.0
+eps=1.0
+k_boltz=0.0019872041
+T=300.0
+ph=8.25
+#Suma de la energia electrostatica para la particula i
+N=2000
+timeser=[]
+elec=[]
+dph=[]
+chrg=[]
+for step in range(1,N):
+	for i,resi in enumerate(chargedList):
+		e_elec=0.0
+		e_ph=0.0
+		new_pkai=0.0
+		for j,idx in enumerate(chargedList):
+			if j!=i:
+				dpkai=ph-pka_old[i]
+				dpkaj=ph-pka_old[j]
+				aobi=aobList[i]
+				aobj=aobList[j]
+				qi=qpart(aobi,dpkai)
+				qj=qpart(aobj,dpkaj)
+				#Distancia
+				dx=x[i]-x[j]
+				dy=y[i]-y[j]
+				dz=z[i]-z[j]
+				r=np.sqrt(dx**2+dy**2+dz**2)
+				e_elec+=debhuck(r,qi,qj,kpp,kmm,kpm,ld,eps)
+
+		e_elec=e_elec/(k_boltz*T*np.log(10))
+		e_ph=ph-pka_old[i]
+
+		new_pkai = pka_old[i] + e_elec
+		pka_new[i]=new_pkai
+		if resi==0:
+			timeser.append(new_pkai)
+			elec.append(e_elec)
+			dph.append(e_ph)
+			chrg.append(qi)
+	pka_old=pka_new
+	
+#print(pka_old)
+#print(pka_new) 
+plt.plot(chrg,'o')
+plt.show()
+plt.plot(elec,'o')
+plt.show()
+plt.plot(dph,'o')
+plt.show()
+
+
+
+
+
+
+
+
+
+
+
+
+
+		
+
+
+
