@@ -29,7 +29,7 @@
 #include <stdlib.h>
 #include <time.h>
 
-//--------- AGREGADO FRANCO ---------
+//--------- FRANCO --------------------
 #include "compute_temp.h"
 #include "thermo.h"
 #include "force.h"
@@ -90,6 +90,9 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 
 
 //--------------------FRANCO-------------------
+  /**
+   * Output files initialization
+   */
 	srand (time(NULL));
 
   //FILE *dataout;
@@ -969,7 +972,10 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     input_charge.close();
     //fprintf(screen, "Total Charge on the System = %8.4f\n", total_charge );
 
-//------------FRANCO-----------------------
+//------------------------------------------FRANCO------------------------------------------------------
+/**
+ * Read input parameters files and save them to variables
+ */
   //Compund model pKas
   ifstream pka_mc("MC_params/PKA.data");
   if (!pka_mc) error->all(FLERR,"File PKA.data doesn't exist");
@@ -981,7 +987,6 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     pka_mc >> let_ref[i] >> pka_ref[i];
   }
 
-
 	ifstream input_mc("MC_params/MC.input");
   if (!input_mc) error->all(FLERR,"File MC.input doesn't exist");
   input_mc >> freqMC;
@@ -989,8 +994,9 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
   input_mc >> temp_montecarlo;
 	input_mc >> pH;
 	input_mc >> total_res_charged;
-
-  //Charge, letter and pKa assignment
+  /**
+   * Charge, letter and pKa assignment to ionizable residues
+   */
   int init_chrg;
   int chrg_idx;
 	for(i = 0;i<total_res_charged;i++){
@@ -1010,7 +1016,9 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     q_idx = charged_indexes[i];
     q_total = q_total + charge_on_residue[q_idx];
   }
-
+  /**
+   * Display simulation data on screen
+   */
   fprintf(screen, "\n------------MC-Init---------------\n\n");
   fprintf(screen, "Amount of charged residues : %d, Initial charge on the system: %.2f\n",total_res_charged,q_total);
   fprintf(screen,"ResNum\tResType\tpKa\tInitCharge\n");
@@ -1025,6 +1033,10 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
 	fprintf(screen, "\n--------------------------------\n");
 
 	/*--------------WRSH----------------*/
+  /**
+   * Delta self parameter initialization. Arrays for each ionizable
+   * residue with its parameters.
+   */
   ifstream input_wrsh("MC_params/WRSH.input");
   if (!input_wrsh) error->all(FLERR,"File WRSH.input doesn't exist");
   input_wrsh >> alpha_pol;
@@ -1056,9 +1068,10 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
     A_selfnonpol_vec[i] = data_nonpol[j];
     //fprintf(screen, "let: %c, data_let: %c, pol: %f, nonpol: %f\n",let,data_let[j],data_pol[j],data_nonpol[j]);
 	}
-
 	/*------------------------------*/
-  //Initialize data for writing output later
+  /**
+   * Initialize data for writing output later
+   */
   rsd = 0;
   D_ele = 0.0;
   D_pH = 0.0;
@@ -1067,7 +1080,9 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
   Nu_nonpol = 0.0;
   V_electro = 0.0;
   /*------------------------------------------*/
-  //Header
+  /**
+   * Header
+   */
 	for(i = 0;i<total_res_charged;i++){
 		fprintf(mcout,"\t%d",charged_indexes[i]+1);
 	}
@@ -1319,9 +1334,12 @@ void FixBackbone::allocate()
   xcp = new double*[n];
   xh = new double*[n];
 //-------------------------FRANCO--------------------------------------
-//Allocation
+/**
+ * Allocation
+ */
   if (huckel_flag) {
-    charge_on_residue = new double[n+2];//Two more for the terminals
+    // Two more for the terminals
+    charge_on_residue = new double[n+2];
 	for (i = 0; i < n+2; ++i) {
 		charge_on_residue[i]=0.0;
 	}
@@ -1341,8 +1359,8 @@ void FixBackbone::allocate()
   letter = new char[n+2];
   A_selfpol_vec = new double[n+2];
   A_selfnonpol_vec = new double[n+2];
-//-----------------------------------------------------------
   }
+  //-----------------------------------------------------------
 
   if (water_flag) {
     water_par = WPV(water_kappa, water_kappa_sigma, treshold, n_wells, well_flag, well_r_min, well_r_max);
@@ -1370,11 +1388,7 @@ void FixBackbone::allocate()
     xn[i] = new double [3];
     xcp[i] = new double [3];
     xh[i] = new double [3];
-//------------FRANCO-----------------------------------
-    //if (huckel_flag) {
-    //  charge_on_residue[i] = 0.0;
-    //}
-//----------------------------------------------------
+
   }
 
   for (i = 0; i < 12; ++i) {
@@ -5800,23 +5814,30 @@ void FixBackbone::compute_solvent_barrier(int i, int j)
 //-------------------------------FRANCO ---------------------------------------------------
 int FixBackbone::mc_charge_change(int *rsd, double *D_ele, double *D_pH, double *D_self, double *V_electro, double *Nu_pol, double *Nu_nonpol)
 {
-  int resu; // Accepted 1 ; Rejected -1
-  double mc_temp = temp_montecarlo; //double mc_temp = temp_calc(igroup3);
-  // Random Number between total_res_charged
-  int rnd_idx = rand() % total_res_charged; //Two more numbers for the terminals
+  // Accepted 1 | Rejected -1
+  int resu;
+  // Outside setting of temperature. Also can be calculated: double mc_temp = temp_calc(igroup3);
+  double mc_temp = temp_montecarlo;
+  // Random Number between total_res_charged. Two more numbers for the terminals
+  int rnd_idx = rand() % total_res_charged;
 	int place_change = charged_indexes[rnd_idx];
+  // Output
   *rsd = place_change + 1;
   int old_chrg = charge_on_residue[place_change];
   int new_chrg = charge_flip(old_chrg,letter[rnd_idx]);
+  int direction = new_chrg - old_chrg;
 
   // Delta energies
   double delta_electro = delta_electrostatics(rnd_idx, place_change);
-  *D_ele = delta_electro;
+  // Output
+  *D_ele = delta_electro/direction;
 
   double termpH = delta_ph(rnd_idx, place_change, mc_temp, old_chrg, new_chrg);
-  *D_pH = termpH;
+  // Output
+  *D_pH = termpH/direction;
   double term_self = delta_self(rnd_idx,place_change,new_chrg,Nu_pol,Nu_nonpol);
-  *D_self = term_self;
+  // Output
+  *D_self = term_self/direction;
 
   double delta_mc = termpH + delta_electro + term_self;
 
@@ -5828,11 +5849,13 @@ int FixBackbone::mc_charge_change(int *rsd, double *D_ele, double *D_pH, double 
 	  }else{
       resu = 1;
 		  charge_on_residue[place_change]=new_chrg;
+      // Output
       *V_electro = *V_electro + delta_electro;
     }
   }else{
     resu = 1;
     charge_on_residue[place_change]=new_chrg;
+    // Output
     *V_electro = *V_electro + delta_electro;
 	}
   return resu;
@@ -5998,7 +6021,9 @@ double FixBackbone::electro_i_j_terminal(int i, int j, double *array){
 	return term_energy;
 }
 double FixBackbone::delta_electrostatics(int rnd_idx, int place_change){
-  //Returns difference in electrostatic energy by changing charge in place_change
+  /**
+   * Returns difference in electrostatic energy by changing charge in place_change
+   */
   // Comparison of old and new configurations
 	int old_chrg = charge_on_residue[place_change];
 	double old_energy = 0.0;
@@ -6027,8 +6052,9 @@ double FixBackbone::delta_electrostatics(int rnd_idx, int place_change){
       }
     }
   }
-  charge_on_residue[place_change]=old_chrg; // Back to old charge
-  //Delta Elec
+  // Back to old charge
+  charge_on_residue[place_change]=old_chrg;
+  // Delta Elec
 	double delta_electro = new_energy - old_energy;
 
   return delta_electro;
@@ -6078,7 +6104,7 @@ double FixBackbone::delta_self(int rnd_idx, int place_change, int new_chrg, doub
 		}else if(Nnonpol>NnonpolMax){
 			u_nonpolar_self = A_self_nonpol;
 		}
-		//Assignment
+		// Direction assignment
 		if(new_chrg==0){
 			term_self = -(u_polar_self + u_nonpolar_self);
 		}else{
@@ -6161,7 +6187,7 @@ double FixBackbone::count_nonpol(int i){
 	}
 	return Ni;
 }
- //------------------------- FRANCO------------------------------------------------------------
+//----------------------------------------------------------------------------------------------
 
 void FixBackbone::compute_DebyeHuckel_Interaction(int i, int j)
 {
@@ -7614,14 +7640,20 @@ void FixBackbone::compute_backbone()
     for (int i=1;i<nEnergyTerms;++i) fprintf(efile, "\t%8.6f", energy_all[i]);
     fprintf(efile, "\t%8.6f\n", energy_all[ET_TOTAL]);
   }
-  //-----------------------------FRANCO --------------------------------------------------------------
+//-----------------------------FRANCO --------------------------------------------------------------
+  /**
+   * Main loop for Monte Carlo trial of charge on ionizable residues
+   */
     if (huckel_flag) {
       if(ntimestep%freqMC==0){
         V_electro = energy[ET_DH];
         int resu;
         resu = mc_charge_change(&rsd, &D_ele, &D_pH, &D_self, &V_electro, &Nu_pol, &Nu_nonpol);
+        // Write output
         if((ntimestep/freqMC) % freqOUT == 0){
+          // MC.log file
           fprintf(dataout,"%d\t%d\t%d\t%f\t%f\t%f\t%f\t%f\t%f\n",ntimestep/freqMC,rsd,resu,Nu_pol,Nu_nonpol,D_pH,D_ele,D_self,V_electro);
+          // MC.state file
           fprintf(mcout, "%d", ntimestep/freqMC);
           double Qtot = 0.0;
           for(int i=0;i<total_res_charged;i++){
@@ -7634,15 +7666,8 @@ void FixBackbone::compute_backbone()
         }
       }
     }
-  //-----------------------------FRANCO----------------------------------------------------
-
-
-
-
-
+//----------------------------------------------------------------------------------------------------
 }
-
-
 
 /* ---------------------------------------------------------------------- */
 
