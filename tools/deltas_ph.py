@@ -71,7 +71,7 @@ for ph in pHs:
 		lista[2].append(float(inter[7]))
 	h.close()
 	# Mean values
-	for r in res_list:
+	for r in res_list[:-2]:
 		mpH = 0
 		mElec = 0
 		mSelf = 0

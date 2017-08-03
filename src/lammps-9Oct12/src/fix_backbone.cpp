@@ -1051,14 +1051,14 @@ FixBackbone::FixBackbone(LAMMPS *lmp, int narg, char **arg) :
   char data_let[len-2]; //Not for terminals
   double data_pol[len-2];
   double data_nonpol[len-2];
-  for(i = 0; i<5;i++){
+  for(i = 0; i<6;i++){
     input_wrsh >> data_let[i] >> data_pol[i] >> data_nonpol[i];
   }
   char let;
   int idx;
   for(i = 0;i<total_res_charged;i++){
 		let = letter[i];
-    for(j = 0;j<5;j++){
+    for(j = 0;j<6;j++){
       if(let==data_let[j]){
         break;
       }

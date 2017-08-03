@@ -56,12 +56,12 @@ output.write(content)
 output.write(str(idx+1)+' '+'N'+' '+str(0)+'\n')
 output.write(str(idx+2)+' '+'C'+' '+str(0)+'\n')
 
-dat_out.write(str(tot_res_chrgd)+'\n')
+dat_out.write(str(tot_res_chrgd + 2)+'\n') # Two more for terminals
 dat_cont = chrg_on_res_out.getvalue()
 dat_out.write(dat_cont)
 # Terminals
-dat_out.write(str(idx+1)+' '+'N'+' '+str(0)+'\n')
-dat_out.write(str(idx+2)+' '+'C'+' '+str(0)+'\n')
+dat_out.write(str(idx+1)+' '+str(0)+'\n')
+dat_out.write(str(idx+2)+' '+str(0)+'\n')
 
 write_input = output.getvalue()
 write_charge = dat_out.getvalue()
