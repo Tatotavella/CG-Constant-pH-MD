@@ -49,14 +49,14 @@ for idx,res in enumerate(seq):
         buffer_out.write(str(idx)+' '+str(res)+' '+str(chrg)+'\n')
         chrg_on_res_out.write(str(idx)+' '+str(chrg)+'\n')
         tot_res_chrgd += 1
-output.write(str(tot_res_chrgd)+'\n')
+output.write(str(tot_res_chrgd + 2)+'\n') # Two more for termials
 content = buffer_out.getvalue()
 output.write(content)
 # Terminals
 output.write(str(idx+1)+' '+'N'+' '+str(0)+'\n')
 output.write(str(idx+2)+' '+'C'+' '+str(0)+'\n')
 
-dat_out.write(str(tot_res_chrgd + 2)+'\n') # Two more for terminals
+dat_out.write(str(tot_res_chrgd)+'\n')
 dat_cont = chrg_on_res_out.getvalue()
 dat_out.write(dat_cont)
 # Terminals
