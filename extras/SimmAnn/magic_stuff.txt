@@ -1,0 +1,2 @@
+awk '{if(NR > 94 && NR < 21096)print;}' log.lammps > modif.log
+awk 'NR%3==0' modif.log > wolynes_things
